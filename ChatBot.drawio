@@ -1,0 +1,114 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0" version="26.0.16">
+  <diagram name="Pagina-1" id="egZrFbAWaq6z-fReU8pI">
+    <mxGraphModel dx="2084" dy="1130" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-13" value="" style="container=1;collapsible=0;expand=0;recursiveResize=0;html=1;whiteSpace=wrap;strokeColor=#FA4D56;fillColor=none;dashed=1;dashPattern=1 3;strokeWidth=2;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="279" y="500" width="220" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-14" value="Machine Learning APP" style="shape=rect;fillColor=none;aspect=fixed;resizable=0;labelPosition=right;verticalLabelPosition=middle;align=left;verticalAlign=middle;strokeColor=none;part=1;spacingLeft=5;fontSize=14;" parent="4-GiTxZ8ehCNkDjHftgZ-13" vertex="1">
+          <mxGeometry width="48" height="48" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-15" value="" style="fillColor=#dae8fc;shape=mxgraph.ibm_cloud.group--resource;strokeColor=#6c8ebf;dashed=0;outlineConnect=0;html=1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;part=1;movable=0;resizable=0;rotatable=0;" parent="4-GiTxZ8ehCNkDjHftgZ-14" vertex="1">
+          <mxGeometry width="24" height="24" relative="1" as="geometry">
+            <mxPoint x="12" y="12" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ONGdp01wx1uImenZu8eX-3" value="Applicativo CHATBOT" style="shape=mxgraph.ibm.box;prType=region;fontStyle=0;verticalAlign=top;align=left;spacingLeft=32;spacingTop=4;fillColor=none;rounded=0;whiteSpace=wrap;html=1;strokeColor=#919191;strokeWidth=2;dashed=0;container=1;spacing=-4;collapsible=0;expand=0;recursiveResize=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="250" y="445" width="670" height="525" as="geometry" />
+        </mxCell>
+        <mxCell id="ONGdp01wx1uImenZu8eX-2" value="" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;fillColor=#7AA116;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.s3;" parent="1" vertex="1">
+          <mxGeometry x="359" y="860" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="u5omtpLmgzhZzCvqh833-5" value="" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;fillColor=#01A88D;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.bedrock;" parent="1" vertex="1">
+          <mxGeometry x="354" y="540" width="70" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-1" value="" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#8C4FFF;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.opensearch_service_index;" parent="1" vertex="1">
+          <mxGeometry x="359" y="710" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-5" value="" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.api_gateway;" parent="1" vertex="1">
+          <mxGeometry x="800" y="538" width="74" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-8" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="4-GiTxZ8ehCNkDjHftgZ-18" target="ONGdp01wx1uImenZu8eX-2" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="390" y="690" as="sourcePoint" />
+            <mxPoint x="440" y="640" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-9" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="4-GiTxZ8ehCNkDjHftgZ-19" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="389" y="614" as="sourcePoint" />
+            <mxPoint x="389" y="704" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-10" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="4-GiTxZ8ehCNkDjHftgZ-22" target="4-GiTxZ8ehCNkDjHftgZ-7" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="420" y="580" as="sourcePoint" />
+            <mxPoint x="470" y="530" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-11" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="4-GiTxZ8ehCNkDjHftgZ-28" target="4-GiTxZ8ehCNkDjHftgZ-5" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="620" y="574" as="sourcePoint" />
+            <mxPoint x="736" y="576" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-16" value="OpenSearch" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="280" y="725" width="70" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-17" value="Bedrock" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="280" y="555" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-20" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="4-GiTxZ8ehCNkDjHftgZ-19" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="389" y="614" as="sourcePoint" />
+            <mxPoint x="389" y="704" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-19" value="fornisce risposte accurate grazie ai dati indicizzati" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="310" y="640" width="160" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-21" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="4-GiTxZ8ehCNkDjHftgZ-1" target="4-GiTxZ8ehCNkDjHftgZ-18" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="389" y="770" as="sourcePoint" />
+            <mxPoint x="389" y="860" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-18" value="Indicizza (classifica) i dati S3 per Bedrock" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="290" y="800" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-23" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="u5omtpLmgzhZzCvqh833-5" target="4-GiTxZ8ehCNkDjHftgZ-22" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="424" y="575" as="sourcePoint" />
+            <mxPoint x="540" y="577" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-22" value="Prende la risposta da bedrock" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="450" y="560" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-27" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="4-GiTxZ8ehCNkDjHftgZ-7" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="620" y="574" as="sourcePoint" />
+            <mxPoint x="736" y="576" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-7" value="" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;fillColor=#ED7100;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" parent="1" vertex="1">
+          <mxGeometry x="580" y="535" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-30" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="4-GiTxZ8ehCNkDjHftgZ-7" target="4-GiTxZ8ehCNkDjHftgZ-28" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="670" y="575" as="sourcePoint" />
+            <mxPoint x="770" y="575" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4-GiTxZ8ehCNkDjHftgZ-28" value="Backend API esposto." style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="690" y="560" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ONGdp01wx1uImenZu8eX-9" value="&lt;p class=&quot;whitespace-pre-wrap break-words&quot;&gt;&lt;strong&gt;Amazon Bedrock (Claude Instant)&lt;/strong&gt;:&lt;/p&gt;&lt;ul depth=&quot;0&quot; class=&quot;[&amp;amp;:not(:last-child)_ul]:pb-1 [&amp;amp;:not(:last-child)_ol]:pb-1 list-disc space-y-1.5 pl-7&quot;&gt;&lt;li class=&quot;whitespace-normal break-words&quot;&gt;Circa 0,5-1,5$ per milione di token in input&lt;/li&gt;&lt;li class=&quot;whitespace-normal break-words&quot;&gt;Circa 1,5-3$ per milione di token in output&lt;/li&gt;&lt;li class=&quot;whitespace-normal break-words&quot;&gt;Stima totale: ~2-4,5$ per milione di token processati&lt;/li&gt;&lt;/ul&gt;&lt;p class=&quot;whitespace-pre-wrap break-words&quot;&gt;&lt;strong&gt;Lambda&lt;/strong&gt;:&lt;/p&gt;&lt;ul depth=&quot;0&quot; class=&quot;[&amp;amp;:not(:last-child)_ul]:pb-1 [&amp;amp;:not(:last-child)_ol]:pb-1 list-disc space-y-1.5 pl-7&quot;&gt;&lt;li class=&quot;whitespace-normal break-words&quot;&gt;Il costo Lambda è minimo per questo caso d&#39;uso&lt;/li&gt;&lt;li class=&quot;whitespace-normal break-words&quot;&gt;Circa 0,20$ per milione di invocazioni (più costo di computazione)&lt;/li&gt;&lt;/ul&gt;&lt;p class=&quot;whitespace-pre-wrap break-words&quot;&gt;&lt;strong&gt;API Gateway&lt;/strong&gt;:&lt;/p&gt;&lt;ul depth=&quot;0&quot; class=&quot;[&amp;amp;:not(:last-child)_ul]:pb-1 [&amp;amp;:not(:last-child)_ol]:pb-1 list-disc space-y-1.5 pl-7&quot;&gt;&lt;li class=&quot;whitespace-normal break-words&quot;&gt;Circa 3,50$ per milione di richieste&lt;/li&gt;&lt;/ul&gt;&lt;p class=&quot;whitespace-pre-wrap break-words&quot;&gt;&lt;strong&gt;OpenSearch&lt;/strong&gt;:&lt;/p&gt;&lt;ul depth=&quot;0&quot; class=&quot;[&amp;amp;:not(:last-child)_ul]:pb-1 [&amp;amp;:not(:last-child)_ol]:pb-1 list-disc space-y-1.5 pl-7&quot;&gt;&lt;li class=&quot;whitespace-normal break-words&quot;&gt;Istanza t3.small: ~30-40$ al mese&lt;/li&gt;&lt;li class=&quot;whitespace-normal break-words&quot;&gt;Storage e I/O: ~10-20$ al mese&lt;/li&gt;&lt;/ul&gt;&lt;p class=&quot;whitespace-pre-wrap break-words&quot;&gt;&lt;strong&gt;S3:&lt;/strong&gt;&lt;/p&gt;&lt;ul depth=&quot;0&quot; class=&quot;[&amp;amp;:not(:last-child)_ul]:pb-1 [&amp;amp;:not(:last-child)_ol]:pb-1 list-disc space-y-1.5 pl-7&quot;&gt;&lt;li class=&quot;whitespace-normal break-words&quot;&gt;Storage: trascurabile per documenti di testo (pochi $)&lt;/li&gt;&lt;li class=&quot;whitespace-normal break-words&quot;&gt;Richieste: ~0,40$ per milione di richieste&lt;/li&gt;&lt;/ul&gt;&lt;p class=&quot;whitespace-pre-wrap break-words&quot;&gt;&lt;strong&gt;Stima totale mensile&lt;/strong&gt;:&lt;/p&gt;&lt;ul depth=&quot;0&quot; class=&quot;[&amp;amp;:not(:last-child)_ul]:pb-1 [&amp;amp;:not(:last-child)_ol]:pb-1 list-disc space-y-1.5 pl-7&quot;&gt;&lt;li class=&quot;whitespace-normal break-words&quot;&gt;Per un milione di token: circa 40-70€ (~45-80$)&lt;/li&gt;&lt;/ul&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="1" vertex="1" connectable="0">
+          <mxGeometry x="1100" y="730" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
