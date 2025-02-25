@@ -1,15 +1,14 @@
 resource "aws_lambda_function" "chatbot-lambda" {
   function_name = "chatbot-lambda"
 
-  s3_bucket = aws_s3_bucket.lambda_bucket.id
-  s3_key    = aws_s3_object.lambda_hello_world.key
 
-  runtime = "python 3.11"
+  runtime = "python3.11"
   handler = "chatbot-lambda.lambda_handler"
+  filename = "chatbot-lambda.zip"  # Usa il file ZIP generato da archive_file
 
-  source_code_hash = data.archive_file.lambda_hello_world.output_base64sha256
+ # source_code_hash = data.archive_file.lambda_hello_world.output_base64sha256
 
-  role = aws_iam_role.lambda_exec.arn
+  role = aws_iam_role.role-chatbot777.arn
 }
 
 resource "aws_cloudwatch_log_group" "chatbot-lambda" {
@@ -19,10 +18,10 @@ resource "aws_cloudwatch_log_group" "chatbot-lambda" {
 }
 
 # Unified IAM Role per tutti i servizi
-resource "aws_iam_role" "unified_role" {
-  name = "unified-service-role"
+resource "aws_iam_role" "role_chatbot777" {
+  name = "role-chatbot777"
   
-  # Assume role policy che permette a multiple services di assumere questo ruolo
+  # Assume role policy che permette a più servizi di assumere questo ruolo
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -42,10 +41,10 @@ resource "aws_iam_role" "unified_role" {
   })
 }
 
-# Policy unificata per tutti i servizi
+# Policy unificata per i servizi: Bedrock, Lambda, API Gateway e Opensearch
 resource "aws_iam_role_policy" "unified_policy" {
   name = "unified-service-policy"
-  role = aws_iam_role.unified_role.id
+  role = aws_iam_role.role-chatbot777.id
   
   policy = jsonencode({
     Version = "2012-10-17",
@@ -83,13 +82,6 @@ resource "aws_iam_role_policy" "unified_policy" {
         Action = "bedrock:*",
         Resource = "*"
       },
-      # KMS permissions
-      {
-        Sid = "DescribeKey",
-        Effect = "Allow",
-        Action = "kms:DescribeKey",
-        Resource = "arn:*:kms:*:::*"
-      },
       # API and network permissions
       {
         Sid = "APIsWithAllResourceAccess",
@@ -101,29 +93,6 @@ resource "aws_iam_role_policy" "unified_policy" {
           "ec2:DescribeSecurityGroups"
         ],
         Resource = "*"
-      },
-      # SageMaker permissions for Bedrock
-      {
-        Sid = "MarketplaceModelEndpointMutatingAPIs",
-        Effect = "Allow",
-        Action = [
-          "sagemaker:CreateEndpoint",
-          "sagemaker:CreateEndpointConfig",
-          "sagemaker:CreateModel",
-          "sagemaker:DeleteEndpoint",
-          "sagemaker:UpdateEndpoint"
-        ],
-        Resource = [
-          "arn:aws:sagemaker:*:*:endpoint/*",
-          "arn:aws:sagemaker:*:*:endpoint-config/*",
-          "arn:aws:sagemaker:*:*:model/*"
-        ],
-        Condition = {
-          StringEquals = {
-            "aws:CalledViaLast": "bedrock.amazonaws.com",
-            "aws:ResourceTag/sagemaker-sdk:bedrock": "compatible"
-          }
-        }
       },
       # OpenSearch permissions
       {
@@ -138,7 +107,7 @@ resource "aws_iam_role_policy" "unified_policy" {
         ],
         Resource = "*"
       },
-      # S3 permissions for Bedrock logging
+      # S3 permissions for Bedrock logging (SOSTITUISCI CON IL NOME DEL BUCKET)
       {
         Effect = "Allow",
         Action = [
@@ -147,8 +116,8 @@ resource "aws_iam_role_policy" "unified_policy" {
           "s3:ListBucket"
         ],
         Resource = [
-          "arn:aws:s3:::example-bedrock-logs-*",
-          "arn:aws:s3:::example-bedrock-logs-*/*"
+          "arn:aws:s3:::NOME_DEL_TUO_BUCKET",
+          "arn:aws:s3:::NOME_DEL_TUO_BUCKET/*"
         ]
       },
       # Lambda permissions
@@ -162,7 +131,29 @@ resource "aws_iam_role_policy" "unified_policy" {
     ]
   })
 }
+
+#Policy CloudWatch
 resource "aws_iam_role_policy_attachment" "lambda_policy" {
-  role       = aws_iam_role.lambda_exec.name
+  role       = aws_iam_role.role-chatbot777.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+
+# Crea un archivio ZIP del codice Lambda
+data "archive_file" "lambda_package" {
+  type        = "zip"
+  source_file = "lambda.zip"
+  output_path = "lambda.zip"
+}
+
+# Definizione della funzione Lambda
+resource "aws_lambda_function" "chatbot_lambda" {
+  function_name = "chatbot-lambda"
+
+  runtime       = "python3.11"
+  handler       = "chatbot_lambda.lambda_handler"
+  filename      = "lambda.zip"
+  source_code_hash = data.archive_file.lambda_package.output_base64sha256
+
+  role = aws_iam_role.role_chatbot777.arn
 }
