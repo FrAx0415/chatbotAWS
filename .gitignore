@@ -1,0 +1,26 @@
+# Escludi i file temporanei di sistema
+.DS_Store
+Thumbs.db
+
+# Escludi file di configurazione locali di Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Escludi file Draw.io temporanei o di backup
+*.drawio~
+*.bak
+
+# Escludi i file di log
+*.log
+
+# Escludi output compilati o di build
+*.out
+*.exe
+*.dll
+
+# Escludi file sensibili o credenziali (se presenti)
+*.env
+.env.local
+secrets.json
