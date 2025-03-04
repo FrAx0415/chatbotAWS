@@ -5,14 +5,17 @@ Vediamo quanto ci costa per tali domande.'''
 # Calcolo dei token
 Token_input = 1500
 Token_output = 325
-Token_totali = Token_input + Token_output
 
 # Calcolo scenario con token e domande al giorno
 Domande_del_cliente_algiorno = 100
-token_giornalieri = Domande_del_cliente_algiorno * Token_totali  # Somma di input e output
-
+token_giornalieri_in = Domande_del_cliente_algiorno * Token_input  # Somma di input e output
+token_giornalieri_out = Domande_del_cliente_algiorno * Token_output
 # Costo del modello per generazione domande
-costo_model_giornaliero = (token_giornalieri / 1000) * 0.00013  # USD al giorno
+costo_claude_output = 0.004
+costo_claude_input = 0.0008 
+costo_model_giornalierinput = (token_giornalieri_in / 1000) * costo_claude_input
+costo_model_giornalierooutput = (token_giornalieri_out / 1000) * costo_claude_output
+costo_model_giornaliero_totale = costo_model_giornalierinput + 
 costo_model_mensile = costo_model_giornaliero * 30  # USD al mese
 costo_model_annuale = costo_model_mensile * 12  # USD all'anno
 
