@@ -1,0 +1,313 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  This stack template creates DMS pipeline to send RDS logs to ElasticSearch.
+Metadata:
+  "AWS::CloudFormation::Interface":
+    ParameterGroups:
+      - Label:
+          default: "DMS Parameters"
+        Parameters:
+          - Name
+          - Environment
+          - EBSVolumeSize
+          - ReplicationInstanceClass
+          - ReplicationInstanceAllocatedStorage
+          - MultiAZ
+          - AvailabilityZone
+          - EngineVersion
+          - PreferredMaintenanceWindow
+          - VpcId
+          - SubnetIds
+      - Label:
+          default: "MySQL Parameters"
+        Parameters:
+          - ServerName
+          - Username
+          - Password
+          - Port
+          - ExtraConnectionAttributes
+          - SecurityGroupIdRDS
+      - Label:
+          default: "Elasticsearch Parameters"
+        Parameters:
+          - EndpointUri
+          - ElasticSearchName
+          - SecurityGroupIdElasticsearch
+      - Label:
+          default: "Migration Task Parameters"
+        Parameters:
+          - ReplicationTaskIdentifier
+          - CdcStartPosition
+          - CdcStopPosition
+          - MigrationType
+          - ReplicationTaskSettings
+          - TableMappings
+Parameters:
+  Name:
+    Type: String
+    Description: A display name for the resource identifier at the end of the EndpointArn response parameter that is returned in the created Endpoint object
+  Environment:
+    Type: String
+    Description: Name of an environment. 'dev', 'staging', 'prod' and any name.
+    ConstraintDescription: Must end with non-numeric character.
+  SecurityGroupIdRDS:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: RDS Security group ID
+  ReplicationInstanceClass:
+    Description: >
+      The compute and memory capacity of the replication instance as specified
+      by the replication instance class.
+      Examples: dms.t3.micro | dms.t3.small | dms.t3.medium | dms.t3.large |
+      dms.c5.large | dms.c5.xlarge | dms.c5.2xlarge | dms.c5.4xlarge
+    Type: String
+    Default: dms.t3.micro
+  ReplicationInstanceAllocatedStorage:
+    Description: >
+      The amount of storage (in gigabytes) to be initially allocated
+      for the replication instance.
+    Type: Number
+    Default: 50
+  MultiAZ:
+    Description: Specifies whether the replication instance is a Multi-AZ deployment. You can't set the AvailabilityZone parameter if the Multi-AZ parameter is set to true
+    Type: String
+    Default: false
+    AllowedValues: ["true", "false"]
+  EngineVersion:
+    Description: The engine version number of the replication instance
+    Type: String
+    Default: "3.4.7"
+  PreferredMaintenanceWindow:
+    Description: The weekly time range during which system maintenance can occur, in UTC | Format ddd:hh24:mi-ddd:hh24:mi
+    Type: String
+  VpcId:
+    Description: >
+      VPC where to setup DMS instance.
+      DMS instance should have connectivity to RDS instance.
+    Type: "AWS::EC2::VPC::Id"
+  SubnetIds:
+    Description: >
+      Subnets for DMS subnet group. Must contain at least two
+      subnets in two different Availability Zones in the same region.
+    Type: "List<AWS::EC2::Subnet::Id>"
+  ServerName:
+    Description: The name of the server where the endpoint database resides
+    Type: String
+  Username:
+    Description: The user name to be used to log in to the endpoint database.
+    Type: String
+  Password:
+    Description: The password to be used to log in to the endpoint database
+    Type: String
+    NoEcho: "true"
+  ExtraConnectionAttributes:
+    Description: Additional attributes associated with the connection. Each attribute is specified as a name-value pair associated by an equal sign (=). Multiple attributes are separated by a semicolon (;) with no additional white space
+    Type: String
+  EndpointUri:
+    Description: The endpoint for the ElasticSearch cluster. Amazon DMS uses HTTPS if a transport protocol (either HTTP or HTTPS) isn't specified.
+    Type: String
+  ElasticSearchName:
+    Description: The name of the ElasticSearch cluster
+    Type: String
+  SecurityGroupIdElasticsearch:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Elasticsearch Security group ID
+  CdcStartPosition:
+    Type: String
+    Description: Indicates when you want a change data capture (CDC) operation to start. Use either CdcStartPosition or CdcStartTime to specify when you want a CDC operation to start. Specifying both values results in an error. Here is a date example --cdc-start-position "2018-03-08T12:12:12"
+  CdcStopPosition:
+    Type: String
+    Description: Indicates when you want a change data capture (CDC) operation to stop. The value can be either server time or commit time. Here is a server time example --cdc-stop-position "server_time:2018-02-09T12:12:12"
+  MigrationType:
+    Type: String
+    Description: The migration type. Valid values full-load | cdc | full-load-and-cdc
+    Default: "full-load-and-cdc"
+  ReplicationTaskIdentifier:
+    Type: String
+    Description: An identifier for the replication task.
+  ReplicationTaskSettings:
+    Type: String
+    Description: Overall settings for the task, in JSON format.
+  TableMappings:
+    Type: String
+    Description: The table mappings for the task, in JSON format.
+    Default: '{ "rules": [ { "rule-type": "selection", "rule-id": "1", "rule-name": "1", "object-locator": { "schema-name": "%", "table-name": "%" }, "rule-action": "include" } ] }'
+
+Conditions:
+  HasCdcStartPosition: !Not [!Equals ["", !Ref CdcStartPosition]]
+  HasCdcStopPosition: !Not [!Equals ["", !Ref CdcStopPosition]]
+  HasReplicationTaskSettings: !Not [!Equals ["", !Ref ReplicationTaskSettings]]
+Resources:
+  DMSAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ["-", ["dms-access-role", !Ref Name, !Ref Environment]]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - dms.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      # Create a policy attached to the role
+      # Allow Cloudwatch logging
+      Policies:
+        - PolicyName: "AllowLogging"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - es:ESHttpDelete
+                  - es:ESHttpGet
+                  - es:ESHttpHead
+                  - es:ESHttpPost
+                  - es:ESHttpPut
+                Resource: !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${ElasticSearchName}-${Environment}/*"
+      Tags:
+        - Key: "Environment"
+          Value: !Ref Environment
+        - Key: "Name"
+          Value: !Join ["-", ["dms-access-role", !Ref Name, !Ref Environment]]
+        - Key: "StackName"
+          Value: !Ref "AWS::StackName"
+  SecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupName: !Join ["-", ["dms", !Ref Name, !Ref Environment]]
+      GroupDescription: !Ref "AWS::StackName"
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          DestinationSecurityGroupId: !Ref SecurityGroupIdRDS
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          DestinationSecurityGroupId: !Ref SecurityGroupIdElasticsearch
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: "Environment"
+          Value: !Ref Environment
+        - Key: "Name"
+          Value: !Join ["-", ["dms", !Ref Name, !Ref Environment]]
+        - Key: "StackName"
+          Value: !Ref "AWS::StackName"
+  InboundRuleRDS:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !GetAtt SecurityGroup.GroupId
+      GroupId: !Ref SecurityGroupIdRDS
+  InboundRuleElasticsearch:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      SourceSecurityGroupId: !GetAtt SecurityGroup.GroupId
+      GroupId: !Ref SecurityGroupIdElasticsearch
+  ReplicationInstanceSubnetGroup:
+    Type: AWS::DMS::ReplicationSubnetGroup
+    Properties:
+      ReplicationSubnetGroupDescription:
+        !Join ["-", ["dms", !Ref Name, !Ref Environment]]
+      ReplicationSubnetGroupIdentifier:
+        !Join ["-", ["dms", !Ref Name, !Ref Environment]]
+      SubnetIds: !Ref SubnetIds
+      Tags:
+        - Key: "Environment"
+          Value: !Ref Environment
+        - Key: "Name"
+          Value: !Join ["-", ["dms", !Ref Name, !Ref Environment]]
+        - Key: "StackName"
+          Value: !Ref "AWS::StackName"
+  ReplicationInstance:
+    Type: AWS::DMS::ReplicationInstance
+    Properties:
+      ResourceIdentifier: !Join ["-", [!Ref Name, !Ref Environment]]
+      AllocatedStorage: !Ref ReplicationInstanceAllocatedStorage
+      AllowMajorVersionUpgrade: false
+      AutoMinorVersionUpgrade: false
+      MultiAZ: !Ref MultiAZ
+      EngineVersion: !Ref EngineVersion
+      PubliclyAccessible: false
+      ReplicationInstanceClass: !Ref ReplicationInstanceClass
+      ReplicationInstanceIdentifier: !Join ["-", [!Ref Name, !Ref Environment]]
+      ReplicationSubnetGroupIdentifier: !Ref ReplicationInstanceSubnetGroup
+      VpcSecurityGroupIds: !Split [" ", !Ref SecurityGroup]
+      Tags:
+        - Key: "Environment"
+          Value: !Ref Environment
+        - Key: "Name"
+          Value: !Join ["-", ["dms", !Ref Name, !Ref Environment]]
+        - Key: "StackName"
+          Value: !Ref "AWS::StackName"
+  EndpointMySQL:
+    Type: AWS::DMS::Endpoint
+    DependsOn: [ReplicationInstance]
+    Properties:
+      EndpointType: "source"
+      EngineName: "mysql"
+      Password: !Ref Password
+      Username: !Ref Username
+      Port: 3306
+      ServerName: !Ref ServerName
+      ExtraConnectionAttributes: !Ref ExtraConnectionAttributes
+      Tags:
+        - Key: "Environment"
+          Value: !Ref Environment
+        - Key: "StackName"
+          Value: !Ref "AWS::StackName"
+  EndpointElasticSearch:
+    Type: AWS::DMS::Endpoint
+    DependsOn: [DMSAccessRole, ReplicationInstance]
+    Properties:
+      EndpointType: "target"
+      EngineName: "elasticsearch"
+      ElasticsearchSettings:
+        EndpointUri: !Ref EndpointUri
+        ServiceAccessRoleArn: !GetAtt DMSAccessRole.Arn
+      Tags:
+        - Key: "Environment"
+          Value: !Ref Environment
+        - Key: "StackName"
+          Value: !Ref "AWS::StackName"
+  ReplicationTask:
+    Type: AWS::DMS::ReplicationTask
+    DependsOn: [DMSAccessRole, ReplicationInstance]
+    Properties:
+      CdcStartPosition:
+        !If [HasCdcStartPosition, !Ref CdcStartPosition, !Ref AWS::NoValue]
+      CdcStopPosition:
+        !If [HasCdcStopPosition, !Ref CdcStopPosition, !Ref AWS::NoValue]
+      MigrationType: !Ref MigrationType
+      ReplicationInstanceArn: !Sub "arn:aws:dms:${AWS::Region}:${AWS::AccountId}:rep:${Name}-${Environment}" #!GetAtt 'ReplicationInstance.Arn'
+      ReplicationTaskIdentifier: !Join [
+          "-",
+          [!Ref Name, !Ref Environment, !Ref ReplicationTaskIdentifier],
+        ] #!Ref ReplicationTaskIdentifier
+      ReplicationTaskSettings:
+        !If [
+          HasReplicationTaskSettings,
+          !Ref ReplicationTaskSettings,
+          !Ref AWS::NoValue,
+        ]
+      SourceEndpointArn: !Ref EndpointMySQL
+      TableMappings: !Ref TableMappings
+      TargetEndpointArn: !Ref EndpointElasticSearch
+      Tags:
+        - Key: "Environment"
+          Value: !Ref Environment
+        - Key: "Name"
+          Value:
+            !Join [
+              "-",
+              [!Ref Name, !Ref Environment, !Ref ReplicationTaskIdentifier],
+            ]
+        - Key: "StackName"
+          Value: !Ref "AWS::StackName"

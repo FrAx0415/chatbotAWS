@@ -1,0 +1,196 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Template for Lambda and EventBridge.
+Metadata:
+  "AWS::CloudFormation::Interface":
+    ParameterGroups:
+      - Label:
+          default: "Lambda Parameters"
+        Parameters:
+          - FunctionName
+          - Environment
+          - LambdaHandlerPath
+          - Runtime
+          - Timeout
+          - MemorySize
+          - Architectures
+          - SecurityGroupId
+          - VpcId
+          - SubnetIds
+          - ScheduleExpression
+          - S3Bucket
+          - S3Key
+      - Label:
+          default: "EventBridge Parameters"
+        Parameters:
+          - ScheduleExpression
+Parameters:
+  FunctionName:
+    Type: String
+    Description: Name of the Lambda.
+    ConstraintDescription: Must end with non-numeric character.
+  Environment:
+    Type: String
+    Description: Name of an environment. 'dev', 'staging', 'prod' and any name.
+    ConstraintDescription: Must end with non-numeric character.
+  LambdaHandlerPath:
+    Type: String
+    Description: Path of a Lambda Handler.
+    ConstraintDescription: Must end with non-numeric character.
+    Default: "lambda_function.lambda_handler"
+  Runtime:
+    Type: String
+    Description: The identifier of the function's runtime.Example  dotnet6 | dotnetcore1.0 | dotnetcore2.0 | dotnetcore2.1 | dotnetcore3.1 | go1.x | java11 | java8 | java8.al2 | nodejs | nodejs10.x | nodejs12.x | nodejs14.x | nodejs16.x | nodejs4.3 | nodejs4.3-edge | nodejs6.10 | nodejs8.10 | provided | provided.al2 | python2.7 | python3.6 | python3.7 | python3.8 | python3.9 | ruby2.5 | ruby2.7
+    Default: "python3.9"
+  MemorySize:
+    Type: Number
+    Description: The amount of memory available to the function at runtime. Increasing the function memory also increases its CPU allocation. The default value is 128 MB.
+    Default: 128
+  Timeout:
+    Type: Number
+    Description: The amount of time (in seconds) that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds
+    Default: 5
+  Architectures:
+    Type: String
+    Description: The instruction set architecture that the function supports. Enter a string array with one of the valid values (arm64 or x86_64). The default value is x86_64
+    Default: "x86_64"
+  SecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: RDS Security group ID
+  VpcId:
+    Description: "The ID of the VPC"
+    Type: "AWS::EC2::VPC::Id"
+  SubnetIds:
+    Description: A list of VPC subnet IDs
+    Type: "List<AWS::EC2::Subnet::Id>"
+  ScheduleExpression:
+    Description: The scheduling expression. For example, "cron(0 20 * * ? *)", "rate(5 minutes)". For more information, see Creating an Amazon EventBridge rule that runs on a schedule
+    Default: "rate(3 minutes)"
+    Type: String
+  S3Bucket:
+    Type: String
+    Description: Name of S3 bucket where is stored the lambda code
+    ConstraintDescription: Must end with non-numeric character.
+  S3Key:
+    Type: String
+    Description: Path inside the S3 bucket where the code is stored
+    ConstraintDescription: Must end with non-numeric character.
+Resources:
+  SecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupName: !Join ["-", ["lambda", !Ref FunctionName, !Ref Environment]]
+      GroupDescription: !Ref "AWS::StackName"
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          DestinationSecurityGroupId: !Ref SecurityGroupId
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: "Environment"
+          Value: !Ref Environment
+        - Key: "Name"
+          Value: !Join ["-", ["lambda", !Ref FunctionName, !Ref Environment]]
+        - Key: "StackName"
+          Value: !Ref "AWS::StackName"
+  InboundRule:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !GetAtt SecurityGroup.GroupId
+      GroupId: !Ref SecurityGroupId
+  # CloudFormation creates a lambda function named <CloudFormationStackName-ResourceName-RandomChars>
+  # Example: CreateLambdaFunction-TestLambdaFunction-N7S3FMXJ8Z8R
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join ["-", [!Ref FunctionName, !Ref Environment]]
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref S3Key
+      Handler: !Ref LambdaHandlerPath
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: !Ref Runtime
+      MemorySize: !Ref MemorySize
+      Timeout: !Ref Timeout
+      VpcConfig:
+        SecurityGroupIds: !Split [" ", !Ref SecurityGroup]
+        SubnetIds: !Ref SubnetIds
+      Tags:
+        - Key: "Environment"
+          Value: !Ref Environment
+        - Key: "Name"
+          Value: !Join ["-", [!Ref FunctionName, !Ref Environment]]
+        - Key: "StackName"
+          Value: !Ref "AWS::StackName"
+  # # Creates an execution role called <CloudFormationStackName-ResourceName-RandomChars>
+  # # Example: CreateLambdaFunction-LambdaExecutionRole-1TWFONVJX3VZQ
+  # # The execution role is assigned to the lambda function
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ["-", ["lambda", !Ref FunctionName, !Ref Environment]]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      # Create a policy attached to the role
+      # Allow Cloudwatch logging
+      Policies:
+        - PolicyName: "AllowLogging"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - logs:*
+                Resource: arn:aws:logs:*:*:*
+        - PolicyName: "AWSLambdaVPCAccessExecutionRole"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - ec2:CreateNetworkInterface
+                  - ec2:DeleteNetworkInterface
+                  - ec2:DescribeNetworkInterfaces
+                Resource: "*"
+      Tags:
+        - Key: "Environment"
+          Value: !Ref Environment
+        - Key: "Name"
+          Value: !Join ["-", ["lambda", !Ref FunctionName, !Ref Environment]]
+        - Key: "StackName"
+          Value: !Ref "AWS::StackName"
+  EventRuleLambdaExecution:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: !Ref "AWS::StackName"
+      Name: !Join ["-", ["schedule", !Ref FunctionName, !Ref Environment]]
+      ScheduleExpression: !Ref ScheduleExpression
+      Targets:
+        - Arn:
+            Fn::GetAtt:
+              - "LambdaFunction"
+              - "Arn"
+          Id:
+            !Join ["-", ["schedule", !Ref FunctionName, !Ref Environment, "ID"]]
+  PermissionForEventsToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Ref: "LambdaFunction"
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn:
+        Fn::GetAtt:
+          - "EventRuleLambdaExecution"
+          - "Arn"

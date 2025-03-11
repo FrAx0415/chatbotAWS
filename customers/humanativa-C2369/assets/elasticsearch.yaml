@@ -1,0 +1,149 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Template for Elasticsearch.
+Metadata:
+  "AWS::CloudFormation::Interface":
+    ParameterGroups:
+      - Label:
+          default: "Elasticsearch Parameters"
+        Parameters:
+          - DomainName
+          - Environment
+          - ElasticsearchVersion
+          - MasterUserName
+          - MasterUserPassword
+          - EBSVolumeSize
+          - ClusterInstanceCount
+          - ClusterInstanceType
+          - VpcId
+          - SubnetIds
+          - AvailabilityZoneCount
+Parameters:
+  DomainName:
+    Description: "A name for the Amazon ES domain."
+    Type: String
+  Environment:
+    Type: String
+    Description: Name of an environment. 'dev', 'staging', 'prod' and any name.
+    ConstraintDescription: Must end with non-numeric character.
+  EBSVolumeSize:
+    Description: "The size of the EBS volume for each data node. The minimum and maximum size of an EBS volume depends on the EBS volume type and the instance type to which it is attached."
+    Type: Number
+    Default: 10
+  ElasticsearchVersion:
+    Description: "Elasticsearch version"
+    Type: String
+    AllowedValues: [
+        "7.10",
+        "7.9",
+        "7.8",
+        "7.7",
+        "7.4",
+        "7.1",
+        "6.8",
+        "6.7",
+        "6.5",
+        "6.4",
+        "6.3",
+        "6.2",
+        "6.0",
+        "5.6",
+        "5.5",
+      ] # aws es list-elasticsearch-versions --query "ElasticsearchVersions[]"
+    Default: "7.10"
+  MasterUserName:
+    Description: "Username for the master user"
+    Type: String
+  MasterUserPassword:
+    Description: "Password for the master user."
+    Type: String
+    NoEcho: "true"
+  ClusterInstanceCount:
+    Description: "The number of data nodes (instances) to use in the Amazon ES domain."
+    Type: Number
+    Default: 1
+  ClusterInstanceType:
+    Description: "The instance type for your data nodes."
+    Type: "String"
+    Default: "t3.small.elasticsearch"
+  VpcId:
+    Description: "The ID of the VPC"
+    Type: "AWS::EC2::VPC::Id"
+  SubnetIds:
+    Description: Choose which subnets the Elasticsearch cluster should use
+    Type: "List<AWS::EC2::Subnet::Id>"
+  AvailabilityZoneCount:
+    Description: If you enabled multiple Availability Zones (AZs), the number of AZs that you want the domain to use.
+    Type: Number
+    AllowedValues: ["2", "3"]
+    Default: 2
+Conditions:
+  HasSingleClusterInstance: !Equals [!Ref ClusterInstanceCount, "1"]
+Resources:
+  SecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupName: !Join ["-", ["elastic", !Ref DomainName, !Ref Environment]]
+      GroupDescription:
+        !Join ["-", ["elastic", !Ref DomainName, !Ref Environment]]
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: "Environment"
+          Value: !Ref Environment
+        - Key: "Name"
+          Value: !Join ["-", ["elastic", !Ref DomainName, !Ref Environment]]
+        - Key: "StackName"
+          Value: !Ref "AWS::StackName"
+
+  ElasticsearchDomain:
+    Type: "AWS::Elasticsearch::Domain"
+    Properties:
+      AccessPolicies:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - "es:ESHttp*"
+            Resource: !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${DomainName}-${Environment}/*"
+      DomainName: !Join ["-", [!Ref DomainName, !Ref Environment]]
+      EBSOptions:
+        EBSEnabled: true
+        VolumeSize: !Ref EBSVolumeSize
+        VolumeType: gp2
+      ElasticsearchClusterConfig:
+        InstanceCount: !Ref ClusterInstanceCount
+        InstanceType: !Ref ClusterInstanceType
+        ZoneAwarenessEnabled: !If [HasSingleClusterInstance, false, true]
+        ZoneAwarenessConfig: !If
+          - HasSingleClusterInstance
+          - !Ref "AWS::NoValue"
+          - AvailabilityZoneCount: !Ref AvailabilityZoneCount
+      ElasticsearchVersion: !Ref ElasticsearchVersion
+      SnapshotOptions:
+        AutomatedSnapshotStartHour: 10
+      AdvancedSecurityOptions:
+        InternalUserDatabaseEnabled: true
+        Enabled: true
+        MasterUserOptions:
+          MasterUserPassword: !Ref MasterUserPassword
+          MasterUserName: !Ref MasterUserName
+      EncryptionAtRestOptions:
+        Enabled: true
+      NodeToNodeEncryptionOptions:
+        Enabled: true
+      DomainEndpointOptions:
+        EnforceHTTPS: true
+      VPCOptions:
+        SecurityGroupIds:
+          - !Ref SecurityGroup
+        SubnetIds: !Ref SubnetIds
+      Tags:
+        - Key: "Environment"
+          Value: !Ref Environment
+        - Key: "Name"
+          Value: !Join ["-", [!Ref DomainName, !Ref Environment]]
+        - Key: "StackName"
+          Value: !Ref "AWS::StackName"
+    UpdatePolicy:
+      EnableVersionUpgrade: true

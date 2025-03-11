@@ -1,0 +1,21 @@
+h2:not(:first-of-type)::before,
+h3::before,
+h4::before {
+    content: "";
+    display: block;
+    width: 100%;
+    background-color: #ccc;
+    margin: 1.5em 0;
+}
+
+h2:not(:first-of-type)::before {
+    height: 0.5px;
+}
+
+h3::before {
+    height: 0.3px;
+}
+
+h4::before {
+    height: 0.1px;
+}

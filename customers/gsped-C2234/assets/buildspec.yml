@@ -1,0 +1,11 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - echo Build started on `date`
+      - date_now=$(date '+%d-%m-%Y-%H-%M-%S')
+      - ami_id=$(aws ec2 create-image --instance-id $instanceId --name $Name-$date_now --no-reboot --output text)
+      - echo $ami_id
+      - aws ec2 wait image-available --image-ids $ami_id
+      - aws ec2 create-launch-template-version --launch-template-id $launchTemplateId --source-version '$Latest' --launch-template-data '{"ImageId":"'$ami_id'"}'
