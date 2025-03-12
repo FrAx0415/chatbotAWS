@@ -4,20 +4,123 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CriticalChat</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: #252F3E; /* Charcoal color */
+            color: white;
+            padding: 20px;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h2 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            flex: 1;
+            font-size: 16px;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        button#stopRec {
+            background-color: #f44336;
+        }
+
+        #status {
+            margin: 15px 0;
+            font-size: 14px;
+            min-height: 20px;
+        }
+
+        audio {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        #transcriptionResult {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        #transcriptionResult h3 {
+            margin-top: 0;
+            font-size: 16px;
+        }
+
+        #transcribedText {
+            line-height: 1.5;
+        }
+    </style>
 </head>
 <body>
-    <iframe src="https://mzgpzqdr.chat.qbusiness.us-east-1.on.aws/" width="100%" height="600px" style="border: none;"></iframe>
-   
-    <h2>Registra un audio</h2>
-    <button id="startRec">🎤 Avvia Registrazione</button>
-    <button id="stopRec" disabled>🛑 Stop</button>
-    <audio id="audioPlayback" controls></audio>
-    <div id="status"></div>
-    <div id="transcriptionResult" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; display: none;">
-        <h3>Testo trascritto:</h3>
-        <p id="transcribedText"></p>
+    <div class="main-content">
+        <iframe src="https://mzgpzqdr.chat.qbusiness.us-east-1.on.aws/" class="chat-iframe"></iframe>
     </div>
-   
+    
+    <div class="sidebar">
+        <h2>Registra un audio</h2>
+        
+        <div class="control-buttons">
+            <button id="startRec">🎤 Avvia Registrazione</button>
+            <button id="stopRec" disabled>🛑 Stop</button>
+        </div>
+        
+        <div id="status"></div>
+        
+        <audio id="audioPlayback" controls></audio>
+        
+        <div id="transcriptionResult">
+            <h3>Testo trascritto:</h3>
+            <p id="transcribedText"></p>
+        </div>
+    </div>
+
     <script>
         let mediaRecorder;
         let audioChunks = [];
@@ -29,7 +132,7 @@
         // In un ambiente Docker, questa è la chiave della soluzione
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? "http://localhost:5000/caricaudio"  // Sviluppo locale
-            : "/caricaudio";  // Produzione (assumendo proxy inverso)
+            : "/api/caricaudio";  // Produzione (assumendo proxy inverso)
        
         document.getElementById("startRec").addEventListener("click", async () => {
             try {
