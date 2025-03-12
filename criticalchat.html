@@ -58,6 +58,11 @@
             border-radius: 5px;
             flex: 1;
             font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
         }
 
         button:disabled {
@@ -75,26 +80,66 @@
             min-height: 20px;
         }
 
+        /* Stili migliorati per il media player */
+        .audio-player-container {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .player-title {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #a0d7f5;
+        }
+
         audio {
             width: 100%;
-            margin: 10px 0;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        /* Personalizzazione del player audio */
+        audio::-webkit-media-controls-panel {
+            background-color: #39495E;
+            border-radius: 8px;
+        }
+
+        audio::-webkit-media-controls-play-button {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+        }
+
+        audio::-webkit-media-controls-timeline {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            height: 4px;
         }
 
         #transcriptionResult {
             background-color: rgba(255, 255, 255, 0.1);
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 12px;
             margin-top: 20px;
             display: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         #transcriptionResult h3 {
             margin-top: 0;
             font-size: 16px;
+            color: #a0d7f5;
+            margin-bottom: 10px;
         }
 
         #transcribedText {
             line-height: 1.5;
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 6px;
         }
     </style>
 </head>
@@ -113,10 +158,13 @@
         
         <div id="status"></div>
         
-        <audio id="audioPlayback" controls></audio>
+        <div class="audio-player-container">
+            <div class="player-title">📢 Audio registrato:</div>
+            <audio id="audioPlayback" controls></audio>
+        </div>
         
         <div id="transcriptionResult">
-            <h3>Testo trascritto:</h3>
+            <h3>✓ Testo trascritto:</h3>
             <p id="transcribedText"></p>
         </div>
     </div>
