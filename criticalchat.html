@@ -3,126 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Upload</title>
-    <style>
-        body {
-            display: flex;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-        }
-        #sidebar {
-            width: 250px;
-            background-color: #f0f0f0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        #content {
-            flex: 1;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        button {
-            padding: 10px;
-            cursor: pointer;
-            background-color: #4051b5;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        .file-upload {
-            display: none;
-        }
-        .upload-status {
-            margin-top: 5px;
-            font-size: 12px;
-        }
-        #transcription {
-            background: white;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            min-height: 50px;
-            white-space: pre-wrap;
-        }
-    </style>
+    <title>CriticalChat</title>
 </head>
 <body>
-    <div id="sidebar">
-        <button id="startRec">🎤 Avvia Registrazione</button>
-        <button id="stopRec" disabled>🛑 Stop</button>
-        <audio id="audioPlayback" controls></audio>
-        <div id="stt-status" class="upload-status"></div>
-
-        <div id="transcription">📝 Testo trascritto apparirà qui...</div>
-
-        <input type="file" id="text-to-speech-upload" class="file-upload" accept=".txt">
-        <button onclick="document.getElementById('text-to-speech-upload').click()">Text-to-speech</button>
-        <div id="tts-status" class="upload-status"></div>
+    <iframe src="https://mzgpzqdr.chat.qbusiness.us-east-1.on.aws/" width="100%" height="600px" style="border: none;"></iframe>
+   
+    <h2>Registra un audio</h2>
+    <button id="startRec">🎤 Avvia Registrazione</button>
+    <button id="stopRec" disabled>🛑 Stop</button>
+    <audio id="audioPlayback" controls></audio>
+    <div id="status"></div>
+    <div id="transcriptionResult" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; display: none;">
+        <h3>Testo trascritto:</h3>
+        <p id="transcribedText"></p>
     </div>
-    <div id="content">
-        <iframe src="https://mzgpzqdr.chat.qbusiness.us-east-1.on.aws/"></iframe>
-    </div>
-
+   
     <script>
         let mediaRecorder;
         let audioChunks = [];
-
+        const statusEl = document.getElementById("status");
+        const transcriptionResultEl = document.getElementById("transcriptionResult");
+        const transcribedTextEl = document.getElementById("transcribedText");
+       
+        // Utilizzare l'host locale invece dell'IP fisso
+        // In un ambiente Docker, questa è la chiave della soluzione
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? "http://localhost:5000/caricaudio"  // Sviluppo locale
+            : "/caricaudio";  // Produzione (assumendo proxy inverso)
+       
         document.getElementById("startRec").addEventListener("click", async () => {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.start();
-            audioChunks = [];
-
-            mediaRecorder.ondataavailable = event => {
-                audioChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-                const audioURL = URL.createObjectURL(audioBlob);
-                document.getElementById("audioPlayback").src = audioURL;
-                document.getElementById("stt-status").textContent = "⏳ Elaborazione...";
-
-                // Crea un file e invialo al server
-                const formData = new FormData();
-                formData.append("file", audioBlob, "recorded_audio.webm");
-
-                try {
-                    const response = await fetch("http://localhost:5000/caricaudio", {
-                        method: "POST",
-                        body: formData
-                    });
-
-                    const result = await response.json();
-                    if (response.ok) {
-                        document.getElementById("stt-status").textContent = "✅ Audio inviato!";
-                        document.getElementById("transcription").textContent = result.text || "Nessun testo ricevuto.";
-                    } else {
-                        document.getElementById("stt-status").textContent = "❌ Errore nell'invio.";
-                        document.getElementById("transcription").textContent = "Errore: " + (result.error || "Sconosciuto.");
+            try {
+                statusEl.textContent = "Accesso al microfono...";
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+               
+                // Verifichiamo i formati supportati
+                let mimeType = "audio/webm";
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = "audio/mp3";
+                    if (!MediaRecorder.isTypeSupported(mimeType)) {
+                        mimeType = "";  // Default del browser
                     }
-                } catch (error) {
-                    console.error("Errore:", error);
-                    document.getElementById("stt-status").textContent = "❌ Errore di connessione.";
-                    document.getElementById("transcription").textContent = "Errore durante la richiesta al server.";
                 }
-            };
-
-            document.getElementById("startRec").disabled = true;
-            document.getElementById("stopRec").disabled = false;
+               
+                mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+                audioChunks = [];
+               
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+               
+                mediaRecorder.onstop = async () => {
+                    statusEl.textContent = "Elaborazione audio...";
+                   
+                    // Crea il blob e riproduci l'audio registrato
+                    const audioBlob = new Blob(audioChunks);
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    document.getElementById("audioPlayback").src = audioUrl;
+                   
+                    // Nascondi il risultato precedente
+                    transcriptionResultEl.style.display = "none";
+                   
+                    // Crea FormData per l'invio
+                    const formData = new FormData();
+                    const timestamp = new Date().getTime();
+                    const filename = `recorded_audio_${timestamp}.webm`;
+                    formData.append("file", audioBlob, filename);
+                   
+                    statusEl.textContent = `Invio al server (${API_URL})...`;
+                   
+                    try {
+                        console.log(`Inviando richiesta a: ${API_URL}`);
+                        const response = await fetch(API_URL, {
+                            method: "POST",
+                            body: formData,
+                            mode: 'cors',
+                            credentials: 'omit'
+                        });
+                       
+                        if (response.ok) {
+                            console.log("Risposta ricevuta con successo");
+                            // Ottieni il JSON dalla risposta
+                            const data = await response.json();
+                            console.log("Dati ricevuti:", data);
+                           
+                            // Mostra il messaggio in un alert
+                            if (data.text) {
+                                alert("Testo trascritto: " + data.text);
+                                // Copia il testo negli appunti
+                            navigator.clipboard.writeText(data.text).then(() => {
+                                console.log("Testo copiato negli appunti con successo!");
+                            }).catch(err => {
+                                console.error("Errore durante la copia negli appunti:", err);
+                            });
+ 
+                                // Aggiorna anche l'interfaccia con il testo trascritto
+                                transcribedTextEl.textContent = data.text;
+                                transcriptionResultEl.style.display = "block";
+                            } else if (data.message) {
+                                alert(data.message);
+                            } else if (data.error) {
+                                alert("Errore: " + data.error);
+                            }
+                           
+                            statusEl.textContent = "Elaborazione completata";
+                        } else {
+                            console.error("Risposta non OK:", response.status, response.statusText);
+                            try {
+                                const errorData = await response.json();
+                                statusEl.textContent = `Errore: ${response.status} ${response.statusText}`;
+                                alert(`Errore nell'invio dell'audio: ${errorData.error || response.statusText}`);
+                            } catch (e) {
+                                statusEl.textContent = `Errore: ${response.status} ${response.statusText}`;
+                                alert(`Errore nell'invio dell'audio: ${response.statusText}`);
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Errore di fetch:", error);
+                        statusEl.textContent = `Errore di connessione: ${error.message}`;
+                        alert("Errore durante la connessione al server: " + error.message);
+                    }
+                };
+               
+                statusEl.textContent = "Registrazione in corso...";
+                mediaRecorder.start();
+                document.getElementById("startRec").disabled = true;
+                document.getElementById("stopRec").disabled = false;
+            } catch (error) {
+                statusEl.textContent = `Errore: ${error.message}`;
+                alert("Errore nell'accesso al microfono: " + error.message);
+            }
         });
-
+       
         document.getElementById("stopRec").addEventListener("click", () => {
-            mediaRecorder.stop();
-            document.getElementById("startRec").disabled = false;
-            document.getElementById("stopRec").disabled = true;
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+                document.getElementById("startRec").disabled = false;
+                document.getElementById("stopRec").disabled = true;
+            }
         });
     </script>
 </body>
