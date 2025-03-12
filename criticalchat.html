@@ -3,9 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CriticalChat</title>
+    <title>Audio Upload</title>
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+        #sidebar {
+            width: 250px;
+            background-color: #f0f0f0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #content {
+            flex: 1;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        button {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #4051b5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .file-upload {
+            display: none;
+        }
+        .upload-status {
+            margin-top: 5px;
+            font-size: 12px;
+        }
+        #transcription {
+            background: white;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            min-height: 50px;
+            white-space: pre-wrap;
+        }
+    </style>
 </head>
 <body>
-    <iframe src="https://mzgpzqdr.chat.qbusiness.us-east-1.on.aws/" width="100%" height="600px" style="border: none;"></iframe>
+    <div id="sidebar">
+        <button id="startRec">🎤 Avvia Registrazione</button>
+        <button id="stopRec" disabled>🛑 Stop</button>
+        <audio id="audioPlayback" controls></audio>
+        <div id="stt-status" class="upload-status"></div>
+
+        <div id="transcription">📝 Testo trascritto apparirà qui...</div>
+
+        <input type="file" id="text-to-speech-upload" class="file-upload" accept=".txt">
+        <button onclick="document.getElementById('text-to-speech-upload').click()">Text-to-speech</button>
+        <div id="tts-status" class="upload-status"></div>
+    </div>
+    <div id="content">
+        <iframe src="https://mzgpzqdr.chat.qbusiness.us-east-1.on.aws/"></iframe>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+
+        document.getElementById("startRec").addEventListener("click", async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+                const audioURL = URL.createObjectURL(audioBlob);
+                document.getElementById("audioPlayback").src = audioURL;
+                document.getElementById("stt-status").textContent = "⏳ Elaborazione...";
+
+                // Crea un file e invialo al server
+                const formData = new FormData();
+                formData.append("file", audioBlob, "recorded_audio.webm");
+
+                try {
+                    const response = await fetch("http://localhost:5000/caricaudio", {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        document.getElementById("stt-status").textContent = "✅ Audio inviato!";
+                        document.getElementById("transcription").textContent = result.text || "Nessun testo ricevuto.";
+                    } else {
+                        document.getElementById("stt-status").textContent = "❌ Errore nell'invio.";
+                        document.getElementById("transcription").textContent = "Errore: " + (result.error || "Sconosciuto.");
+                    }
+                } catch (error) {
+                    console.error("Errore:", error);
+                    document.getElementById("stt-status").textContent = "❌ Errore di connessione.";
+                    document.getElementById("transcription").textContent = "Errore durante la richiesta al server.";
+                }
+            };
+
+            document.getElementById("startRec").disabled = true;
+            document.getElementById("stopRec").disabled = false;
+        });
+
+        document.getElementById("stopRec").addEventListener("click", () => {
+            mediaRecorder.stop();
+            document.getElementById("startRec").disabled = false;
+            document.getElementById("stopRec").disabled = true;
+        });
+    </script>
 </body>
 </html>

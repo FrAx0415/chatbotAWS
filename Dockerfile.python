@@ -1,0 +1,14 @@
+FROM python:3.9
+
+WORKDIR /app
+
+COPY . /app
+
+RUN pip install elevenlabs flask flask-cors pydub && \
+    apt update -y && \
+    apt upgrade -y && \
+    apt install ffmpeg -y
+
+EXPOSE 5000
+
+CMD ["python3", "semplice.py", "--api-key", "sk_61cddb7392d84a46443fcb7e8aebbc1673ef73ed1d412f7a"]

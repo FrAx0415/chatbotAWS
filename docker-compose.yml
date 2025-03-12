@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   webserver:
     build: .
@@ -9,14 +7,18 @@ services:
       - .:/usr/share/nginx/html
       - audio_input:/audio_input  # Volume condiviso
     restart: unless-stopped
-
+  
   app:
-    image: python:3.9  # Usa un'immagine Python ufficiale
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    ports:
+      - "5000:5000"
     volumes:
       - ./py:/app  # Monta la cartella py come /app nel container
       - audio_input:/app/audio_input  # Volume condiviso mappato dentro ./py/audio_input
     working_dir: /app
-    command: ["/bin/sh", "-c", "pip install elevenlabs && python semplice.py --api-key sk_61cddb7392d84a46443fcb7e8aebbc1673ef73ed1d412f7a"]
+    command: ["/bin/sh", "-c", "pip install elevenlabs flask && python semplice.py --api-key sk_61cddb7392d84a46443fcb7e8aebbc1673ef73ed1d412f7a"]
     restart: unless-stopped
 
 volumes:

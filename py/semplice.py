@@ -1,57 +1,64 @@
+from flask import Flask, request, jsonify
 import os
-import time
-import argparse
 from elevenlabs.client import ElevenLabs
+from flask_cors import CORS
+from pydub import AudioSegment
 
-def convert_audio_to_text(api_key, input_folder, output_folder):
-    client = ElevenLabs(api_key=api_key)
-    os.makedirs(output_folder, exist_ok=True)
-    
-    audio_extensions = {'.mp3', '.wav', '.m4a', '.flac', '.ogg'}
-    
-    while True:
-        for filename in os.listdir(input_folder):
-            file_path = os.path.join(input_folder, filename)
-            if os.path.isfile(file_path):
-                _, ext = os.path.splitext(file_path)
-                if ext.lower() in audio_extensions:
-                    process_audio_file(client, file_path, output_folder)
-        time.sleep(5)  # Controlla nuovi file ogni 5 secondi
+app = Flask(__name__)
+CORS(app)
 
-def process_audio_file(client, file_path, output_folder):
+API_KEY = "sk_61cddb7392d84a46443fcb7e8aebbc1673ef73ed1d412f7a"
+UPLOAD_FOLDER = "./audio_input"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+client = ElevenLabs(api_key=API_KEY)
+
+def convert_to_mp3(file_path):
+    """Converte un file audio in MP3 se necessario."""
+    file_ext = os.path.splitext(file_path)[1].lower()
+    if file_ext == ".webm":  # Se il file è in WebM, lo convertiamo
+        mp3_path = file_path.replace(".webm", ".mp3")
+        audio = AudioSegment.from_file(file_path, format="webm")
+        audio.export(mp3_path, format="mp3")
+        os.remove(file_path)  # Rimuove il file originale
+        return mp3_path
+    return file_path  # Se è già MP3, lo lascia invariato
+
+def process_audio_file(file_path):
+    """Elabora il file audio con ElevenLabs."""
     try:
-        filename = os.path.basename(file_path)
-        name_without_ext = os.path.splitext(filename)[0]
-        output_path = os.path.join(output_folder, f"{name_without_ext}.txt")
-
-        if os.path.exists(output_path):  # Evita di rielaborare file già convertiti
-            return
-
-        print(f"Convertendo {filename}...")
-
         with open(file_path, 'rb') as audio_file:
             audio_data = audio_file.read()
 
         if not audio_data:
-            print(f"Errore: Il file {file_path} è vuoto")
-            return
+            return {"error": "Il file è vuoto"}
 
-        response = client.speech_to_text.convert(file=audio_data, model_id="scribe_v1",language_code="it")
-        
-        with open(output_path, 'w', encoding='utf-8') as text_file:
-            text_file.write(response.text)
-
-        print(f"Conversione completata: {output_path}")
+        response = client.speech_to_text.convert(
+            file=audio_data, model_id="scribe_v1", language_code="it"
+        )
+        return {"text": response.text}
 
     except Exception as e:
-        print(f"Errore con il file {file_path}: {str(e)}")
+        return {"error": str(e)}
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Conversione audio in testo con ElevenLabs")
-    parser.add_argument("--api-key", required=True, help="API key di ElevenLabs")
-    parser.add_argument("--input-folder", default="./audio_input", help="Cartella con i file audio")
-    parser.add_argument("--output-folder", default="./text_output", help="Cartella dove salvare il testo")
-    args = parser.parse_args()
+@app.route('/caricaudio', methods=['POST'])
+def upload_audio():
+    if 'file' not in request.files:
+        return jsonify({"error": "Nessun file fornito"}), 400
 
-    os.makedirs(args.input_folder, exist_ok=True)
-    convert_audio_to_text(args.api_key, args.input_folder, args.output_folder)
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "Nessun file selezionato"}), 400
+
+    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(file_path)
+
+    # Converti in MP3 se necessario
+    file_path = convert_to_mp3(file_path)
+
+    # Elabora il file convertito
+    result = process_audio_file(file_path)
+    return jsonify(result)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
