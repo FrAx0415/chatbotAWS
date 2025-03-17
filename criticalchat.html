@@ -239,7 +239,6 @@
                            
                             // Mostra il messaggio in un alert
                             if (data.text) {
-                                alert("Testo trascritto: " + data.text);
                                 // Copia il testo negli appunti
                             navigator.clipboard.writeText(data.text).then(() => {
                                 console.log("Testo copiato negli appunti con successo!");

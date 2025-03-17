@@ -1,0 +1,1 @@
+Dammi solo la lista degli utenti che utilizzano Magento.
